@@ -28,8 +28,6 @@ app.use(cors(corsOptions));
 
 
 dotenv.config({ path : "backend/config/config.env" });
-
-const errorMiddleware = require("./middleware/Error");
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(fileUpload());
