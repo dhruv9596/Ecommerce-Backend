@@ -1,20 +1,28 @@
-const ErrorHandler = require("../utils/ErrorHandler");
+const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncError");
 const User = require("../models/UserModel");
 const sendToken = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendEmail.js");
 const crypto = require("crypto");
+const cloudinary = require('cloudinary');
+const jwt = require('jsonwebtoken');
+const { log } = require("console");
 //Register a User
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   const { name, email, password } = req.body;
-  //console.log( 'Register user request ' , req.body );
+  const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar , {
+    folder : "avtars",
+    width : 150,
+    crop : "scale",
+  });
+  console.log( 'my Cloud ' , myCloud );
   const user = await User.create({
     name,
     email,
     password,
     avatar: {
-      public_id: "this is a sample id",
-      url: "profilepicurl",
+      public_id: myCloud.public_id,
+      url: myCloud.secure_url,
     },
   });
   sendToken(user, 201, res);
@@ -22,22 +30,40 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
 
 //Login User
 exports.loginUser = catchAsyncErrors(async (req, res, next) => {
+  // console.log('Req ' , req.body);
   const { email, password } = req.body;
-  //console.log( 'login User request ' , req.body );
-  //checking if user has given password and emial both
+  // console.log( 'login User request ' + email + " " + password );
+  //checking if user has given password and email both
   if (!email || !password) {
     return next(new ErrorHandler("Please Enter Email & Password ", 400));
   }
   //In UserModel we've used password select = false we need to manually select it.
   const user = await User.findOne({ email }).select("+password");
-  if (!user) {
+  // console.log('User Found or Not ? ' , user);
+  if (!user || Object.keys(user).length==0) {
+    console.log('length ? ' , user);
     return next(new ErrorHandler("Invalid email or password"));
   }
   const isPasswordMatched = await user.comparePassword(password);
+  
   if (!isPasswordMatched) {
-    return next(new ErrorHandler(" Invalid email or password"));
+    console.log('pass match ? ' , user);
+    return next(new ErrorHandler("Invalid email or password"));
   }
-  sendToken(user, 200, res);
+  // sendToken(user, 200, res);
+  const token = user.getJWTToken();
+  // res.cookie("token", token, { maxAge: 900000, httpOnly: true });
+  res.status(200).json({
+    success: true,
+    user,
+    token,
+  });
+  // res
+  //   .writeHead(200, {
+  //     "Set-Cookie": `token=${token}; HttpOnly`,
+  //     "Access-Control-Allow-Credentials": "true",
+  //   })
+  //   .send();
 });
 
 //Logout User
@@ -144,9 +170,10 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
 //GET User Details
 
 exports.getUserDetails = catchAsyncErrors( async( req , res , next ) => {
-
-  const user = await User.findById( req.user.id );
-  console.log( 'User', user );
+  console.log(req.body);
+  const token = req.body.token;
+  const data = jwt.verify(token, `${process.env.JWT_SECRET}`)
+  const user = await User.findById( data.id );
   res.status(200).json({
     success : true,
     data : user,
@@ -159,6 +186,7 @@ exports.updateProfile = catchAsyncErrors( async( req , res , next ) => {
     name : req.body.name,
     email : req.body.email,
   };
+  console.log('Res-----> ' , newUserData);
   // we will cloudinary letter
   const user = await User.findByIdAndUpdate( req.user.id , newUserData , {
     new : true,
@@ -238,6 +266,9 @@ exports.updateUserRole = catchAsyncErrors( async( req , res , next ) => {
 exports.deleteUser = catchAsyncErrors( async( req , res , next ) => {
   
   try {
+       const user = await User.findById(req.params.id);
+      const imageId = user.avatar.public_id;
+      await cloudinary.v2.uploader.destroy(imageId);
     await User.findByIdAndDelete(req.params.id);
     res.status(200).json({
       status: "success",

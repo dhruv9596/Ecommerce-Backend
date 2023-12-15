@@ -22,7 +22,7 @@ const orderSchema = new mongoose.Schema({
       type: Number,
       required: true,
     },
-    state: {
+    country: {
       type: String,
       required: true,
     },

@@ -54,15 +54,15 @@ const productSchema = mongoose.Schema({
       },
       name: {
         type: String,
-        required: false,
+        required: true,
       },
       rating: {
         type: Number,
-        required: false,
+        required: true,
       },
       comment: {
         type: String,
-        required: false,
+        required: true,
       },
     },
   ],

@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema({
     minLength: [8, "Password should be more than 8 characters"],
     select: false,
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
   avatar: {
     public_id: {
       type: String,
@@ -52,13 +56,13 @@ userSchema.pre("save", async function (next) {
 
 //JWT Token
 userSchema.methods.getJWTToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
-  });
+  return jwt.sign({ id: this._id }, `${process.env.JWT_SECRET}`);
 };
 
 //Compare Password
 userSchema.methods.comparePassword = async function (enteredPassword) {
+  // console.log('Entered Password', enteredPassword);
+  // console.log("Org Pass ",await bcrypt.hash(this.password,10));
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

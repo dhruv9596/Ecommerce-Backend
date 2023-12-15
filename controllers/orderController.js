@@ -1,10 +1,11 @@
 const Order = require("../models/OrderModel.js");
 const Product = require("../models/ProductModel");
-const ErrorHandler = require("../utils/ErrorHandler");
+const ErrorHandler = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncError");
 
 //Create new Order
 exports.newOrder = catchAsyncErrors(async (req, res, next) => {
+  console.log('Order req at backend ---->' , req.user._id);
   const {
     shippingInfo,
     orderItems,
@@ -27,7 +28,7 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
     user: req.user._id,
   });
 
-  res.status(200).json({
+  res.status(201).json({
     success: true,
     order,
   });
@@ -51,6 +52,7 @@ exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
 
 //Get Logged in user Orders
 exports.myOrders = catchAsyncErrors(async (req, res, next) => {
+
   const orders = await Order.find({user : req.user._id });
 
   if (!orders) {
@@ -64,6 +66,7 @@ exports.myOrders = catchAsyncErrors(async (req, res, next) => {
 
 //Get All Orders
 exports.getAllOrders = catchAsyncErrors(async (req, res, next) => {
+  console.log("Orders At backend " , req.headers);
   const orders = await Order.find();
 
   let totalAmount = 0;
@@ -92,10 +95,12 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
     return next("You have Delivered this Order" ,404);
   }
 
-  order.orderItems.forEach( async (order) => {
-    await updateStock(order.product , order.quantity);
-  });
-  console.log('Order After' , order.stock);
+  if( req.body.status === "Shipped"){
+    order.orderItems.forEach(async (order) => {
+      await updateStock(order.product, order.quantity);
+    });
+  }
+  // console.log('Order After' , order.stock);
   order.orderStatus = req.body.status;
   
   if( req.body.status === "Delivered" ){
@@ -108,6 +113,8 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
       deliveredAt : Date.now(),
     }
   })
+  const o = await Order.findById(req.params.id);
+  console.log('OrderStatus : ' ,o.orderStatus);
   res.status(200).json({
     success: true,
   });
