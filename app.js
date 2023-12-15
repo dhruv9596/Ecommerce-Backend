@@ -1,11 +1,11 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const app = express();
+const errorMiddleware = require("./middleware/Error");
 
 const cors = require('cors')
 app.use(cors());
 
-const errorMiddleware = require("./middleware/Error");
 const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
@@ -24,9 +24,6 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-
-
-
 dotenv.config({ path : "backend/config/config.env" });
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
