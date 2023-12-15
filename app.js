@@ -8,7 +8,6 @@ app.use(cors());
 const errorMiddleware = require("./middleware/Error");
 const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
-const cors = require("cors");
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
