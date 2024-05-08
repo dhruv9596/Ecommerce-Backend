@@ -4,7 +4,7 @@ const app = express();
 const errorMiddleware = require("./middleware/Error");
 
 const cors = require('cors')
-app.use(cors());
+// app.use(cors());
 
 const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
@@ -19,11 +19,17 @@ app.use(function (req, res, next) {
  });
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
-const corsOptions = {
-  origin: ["http://localhost:4000", "http://localhost:3000"],
-  credentials: true,
-};
-app.use(cors(corsOptions));
+// const corsOptions = {
+//   // origin: ["http://localhost:4000", "http://localhost:3000"],
+//     origin: 'http://localhost:3000',
+//   credentials: true,
+// };
+app.use(cors({
+  origin: 'http://localhost:3000',
+  // origin: 'http://ecommerce-i8go.onrender.com',
+  credentials: true // Make sure to include this if your request includes credentials
+}));
+// app.use(cors(corsOptions));
 dotenv.config({ path : "backend/config/config.env" });
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
