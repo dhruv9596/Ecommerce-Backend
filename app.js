@@ -25,8 +25,7 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 //   credentials: true,
 // };
 app.use(cors({
-  origin: 'https://ecommerce-dhruv.vercel.app/',
-  // origin: 'http://ecommerce-i8go.onrender.com',
+  origin: 'http://https://ecommerce-dhruv.vercel.app/',
   credentials: true // Make sure to include this if your request includes credentials
 }));
 // app.use(cors(corsOptions));
